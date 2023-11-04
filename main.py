@@ -2,13 +2,13 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import gspread
 
-spreadsheet_id = "1aOWxhkehfcJdpuIJOb8CJ4SsenEzJvHBAYdimSX3Yak"
+spreadsheet_id = "YOUR_SPREADSHEET_ID"
 
 creds = service_account.Credentials.from_service_account_file("key.json", scopes=["https://www.googleapis.com/auth/spreadsheets", 'https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive'])
 
 client = gspread.authorize(creds)
 
-sheet = client.open('Copy of Зелена 204 Список камер з ip MAC')
+sheet = client.open('YOUR_SPREADSHEET_NAME')
 
 sheet_instance = sheet.get_worksheet(0)
 
