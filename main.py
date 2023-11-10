@@ -16,13 +16,23 @@ def get_last_n_characters(text, n):
     last_n_characters=text[-n:]
     return last_n_characters
 
+def colnum_string(n):
+    string = ""
+    while n > 0:
+        n, remainder = divmod(n - 1, 26)
+        string = chr(65 + remainder) + string
+    return string
 
 f = open("something.txt", "r")
 i = 1
 for line in f:
     i = i + 1
     last = get_last_n_characters(line, 2)
-    cell = sheet_instance.findall((line[:-2]).replace(" ", ""))
+    cell = sheet_instance.find(query=(line[:-2]).replace(" ", ""), in_column=2)
     print((line[:-2]).replace(" ", ""))
-    print(cell)
-#!    sheet_instance.update(range_name='D' + str(cell), values="sw1-" + str(last))
+    try:
+        row = cell.row
+        range_s = ("%s%s" % ("D", row))
+        sheet_instance.update(range_name=range_s, values="sw1-" + str(last))
+    except AttributeError:
+        print("None")
