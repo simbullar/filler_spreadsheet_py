@@ -6,15 +6,19 @@ import os
 with open("something.txt", "w") as f:
     f.write('')
     f.close
+
+def create_instance(id, file_name):
+    creds = service_account.Credentials.from_service_account_file(file_name, scopes=["https://www.googleapis.com/auth/spreadsheets", 'https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive'])
+    client = gspread.authorize(creds)
+    sheet = client.open_by_key(id)
+    sheet_instance = sheet.get_worksheet(0)
+    return sheet_instance
+
 spreadsheet_id = "YOUR_SPREADSHEET_ID"
 
-creds = service_account.Credentials.from_service_account_file("key.json", scopes=["https://www.googleapis.com/auth/spreadsheets", 'https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive'])
-
-client = gspread.authorize(creds)
-
-sheet = client.open_by_key(spreadsheet_id)
-
-sheet_instance = sheet.get_worksheet(0)
+sheet_instance = create_instance(spreadsheet_id, "key.json")
+sheet_instance2 = create_instance(spreadsheet_id, "key2.json")
+#? START OF FUNCTIONS
 
 def get_last_n_characters(text, n):
     last_n_characters=text[-n:]
@@ -26,42 +30,36 @@ def colnum_string(n):
         n, remainder = divmod(n - 1, 26)
         string = chr(65 + remainder) + string
     return string
-#? 
+
 
 def get_files(path):
     for file in os.listdir(path):
         if os.path.isfile(os.path.join(path, file)):
             yield file
 
-def find_lines_containing_any(filename, wanted):
-    with open(filename, 'r') as dna_file:
-       for dna_line in dna_file:
-            if wanted in dna_line:
-                yield dna_line
-#?
-value = sheet_instance.col_values(col=2)
-print(value)
-f = open("something.txt", "a")
-for x in range(len(value)):
-    f.write(value[x]+"\n")
-f.close
+def get_num_of_smth(list, value):
+    i = 0
+    for item in list:
+        if item == value:
+            return i + 1
+        else:
+            i = i + 1
+#? END OF FUNCTIONS
 
-smth = "bc:32:5f:e9:93:01"
-for dna in find_lines_containing_any('something.txt', smth):
-    print(dna)
-#! 11    
-#f = open("something.txt", "a")
-#i = 1
-#for file in get_files(r'C:\Users\simbullar\Documents\python\sheet\files'):
-#    one = file[-1]
-#    b = open("C:\\Users\\simbullar\\Documents\\python\\sheet\\files\\"+file, "r")
-#   for line in b:
-#      last = get_last_n_characters(line, 2)
-#        cell = sheet_instance.find(query=(line[:-2]).replace(" ", ""), in_column=2)
-#        print((line[:-2]).replace(" ", ""))
-#        try:
-#            row = cell.row
-#            range_s = ("%s%s" % ("D", row))
-#            sheet_instance.update(range_name=range_s, values="sw"+one+"_"+str(last))
-#        except AttributeError:
-#            print("None")
+value = sheet_instance.col_values(col=2)
+
+for file in get_files(r'C:\Users\simbullar\Documents\python\sheet\files'):
+    one = file[-1]
+    b = open("C:\\Users\\simbullar\\Documents\\python\\sheet\\files\\"+file, "r")
+    for line in b:
+        line_num = get_num_of_smth(value, line[:-2].replace(" ", ""))
+        print((line[:-2]).replace(" ", ""))
+        if line_num != None:
+            last = get_last_n_characters(line, 2)
+            range_s = ("%s%s" % ("D", line_num))
+            try:
+                sheet_instance.update(range_name=range_s, values="sw"+one+"_"+str(last))
+            except gspread.exceptions.APIError:
+                sheet_instance2.update(range_name=range_s, values="sw"+one+"_"+str(last))
+        elif line_num == None:
+            print("None")
